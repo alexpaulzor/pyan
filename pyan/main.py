@@ -57,6 +57,9 @@ def main():
     parser.add_option("-c", "--colored",
                       action="store_true", default=False, dest="colored",
                       help="color nodes according to namespace [dot only]")
+    parser.add_option("-C", "--color-edges",
+                      action="store_true", default=False, dest="color_edges",
+                      help="randomize colors to make edges easier to follow")
     parser.add_option("-G", "--grouped-alt",
                       action="store_true", default=False, dest="grouped_alt",
                       help="suggest grouping by adding invisible defines edges [only useful with --no-defines]")
@@ -88,10 +91,11 @@ def main():
             'draw_defines': options.draw_defines,
             'draw_uses': options.draw_uses,
             'colored': options.colored,
-            'grouped_alt' : options.grouped_alt,
+            'grouped_alt': options.grouped_alt,
             'grouped': options.grouped,
             'nested_groups': options.nested_groups,
-            'annotated': options.annotated}
+            'annotated': options.annotated,
+            'color_edges': options.color_edges}
 
     # TODO: use an int argument for verbosity
     logger = logging.getLogger(__name__)

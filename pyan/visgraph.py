@@ -68,6 +68,22 @@ class Colorizer:
             return "#%02x%02x%02x" % (R,G,B)
 
 
+    @staticmethod
+    def rgbize_html(RGB):
+        R = int(RGB[1:3], 16)/255.0
+        G = int(RGB[3:5], 16)/255.0
+        B = int(RGB[5:7], 16)/255.0
+        return (R,G,B)
+
+    @staticmethod
+    def average_html(RGB1, RGB2):
+        R1, G1, B1 = Colorizer.rgbize_html(RGB1)
+        R2, G2, B2 = Colorizer.rgbize_html(RGB2)
+        return Colorizer.htmlize_rgb(
+            (R1 + R2) * 255 % 255,
+            (G1 + G2) * 255 % 255,
+            (B1 + B2) * 255 % 255)
+
 class VisualNode(object):
     """
     A node in the output graph: colors, internal ID, human-readable label, ...
@@ -126,6 +142,7 @@ class VisualGraph(object):
     @classmethod
     def from_visitor(cls, visitor, options=None, logger=None):
         colored = options.get('colored', False)
+        color_edges = options.get('color_edges', False)
         nested = options.get('nested_groups', False)
         grouped_alt = options.get('grouped_alt', False)
         grouped = nested or options.get('grouped', False)  # nested -> grouped
@@ -245,10 +262,22 @@ class VisualGraph(object):
 
         if draw_uses:
             color = "#000000"
+            edge_colorizer = Colorizer(
+                num_colors=len(visitor.uses_edges),
+                colored=color_edges, logger=logger)
             for n in visitor.uses_edges:
                 if n.defined:
+
                     for n2 in visitor.uses_edges[n]:
                         if n2.defined:
+                            if color_edges:
+                                logger.info("Making colors for {}->{}".format(n, n2))
+                                idx, color1, text_RGB = edge_colorizer.make_colors(n)
+                                idx, color2, text_RGB = edge_colorizer.make_colors(n2)
+
+                                color = edge_colorizer.average_html(color1, color2)
+                                logger.info("Got color for {}->{} = {}->{} = {}".format(n, n2, color1, color2, color))
+
                             root_graph.edges.append(
                                     VisualEdge(
                                         nodes_dict[n],
