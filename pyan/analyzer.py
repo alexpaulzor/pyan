@@ -1460,8 +1460,10 @@ class CallGraphVisitor(ast.NodeVisitor):
         # What about incoming uses edges? E.g. consider a lambda that is saved
         # in an instance variable, then used elsewhere. How do we want the
         # graph to look like in that case?
-
-        for name in self.nodes:
+        skipped_names = set()
+        for name in list(self.nodes):
+            if name in skipped_names:
+                continue
             if name in ('lambda', 'listcomp', 'setcomp', 'dictcomp', 'genexpr'):
                 for n in self.nodes[name]:
                     pn = self.get_parent_node(n)
@@ -1470,3 +1472,4 @@ class CallGraphVisitor(ast.NodeVisitor):
                             self.logger.info("Collapsing inner from %s to %s, uses %s" % (n, pn, n2))
                             self.add_uses_edge(pn, n2)
                     n.defined = False
+                    skipped_names.add(n)
